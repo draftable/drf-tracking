@@ -299,6 +299,13 @@ class TestLoggingMixin(APITestCase):
         log = APIRequestLog.objects.first()
         self.assertEqual(log.response, u'{"post":"response"}')
 
+    @override_settings(DATA_UPLOAD_MAX_MEMORY_SIZE=10)
+    def test_log_multipart_file_larger_than_data_upload_max_memory_size(self):
+        file = BytesIO(b'x' * 100)
+        response = self.client.post('/multipart-logging', {'file': file}, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(APIRequestLog.objects.count(), 1)
+
     def test_log_status_validation_error(self):
         self.client.get('/validation-error-logging')
         log = APIRequestLog.objects.first()

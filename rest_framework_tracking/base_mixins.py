@@ -31,7 +31,10 @@ class BaseLoggingMixin(object):
 
         self.log = {}
         self.log['requested_at'] = now()
-        self.log['data'] = self._clean_data(request.body)
+        # request.body buffers the whole upload and raises RequestDataTooBig past DATA_UPLOAD_MAX_MEMORY_SIZE,
+        # which multipart parsing alone never does. The parsed fields replace this below anyway.
+        if not request.content_type.startswith('multipart/'):
+            self.log['data'] = self._clean_data(request.body)
 
         super(BaseLoggingMixin, self).initial(request, *args, **kwargs)
 
